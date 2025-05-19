@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Elevator System</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  <body>
+    <h2>Elevator System</h2>
+    <div class="elevator-moving-container">
+      <div class="elevator-item item1">
+        <img src="elevator.svg" alt="Elevator" />
+      </div>
+      <div class="elevator-item item2">
+        <img src="elevator.svg" alt="Elevator" />
+      </div>
+      <div class="elevator-item item3">
+        <img src="elevator.svg" alt="Elevator" />
+      </div>
+      <div class="elevator-item item4">
+        <img src="elevator.svg" alt="Elevator" />
+      </div>
+      <div class="elevator-item item5">
+        <img src="elevator.svg" alt="Elevator" />
+      </div>
+    </div>
+    <table id="elevatorSystem">
+      <thead>
+        <tr>
+          <th>Floor</th>
+          <th>1</th>
+          <th>2</th>
+          <th>3</th>
+          <th>4</th>
+          <th>5</th>
+          <th>Call</th>
+        </tr>
+      </thead>
+      <tbody id="elevator-body">
+        <!-- Rows are defined statically -->
+        <tr>
+          <td class="floor-number">9</td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="call-button-container">
+            <div class="call-button">Call</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="floor-number">8</td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="call-button-container">
+            <div class="call-button">Call</div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="floor-number">7</td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="call-button-container">
+            <div class="call-button">Call</div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="floor-number">6</td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td><div class="call-button">Call</div></td>
+        </tr>
+
+        <tr>
+          <td class="floor-number">5</td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="call-button-container">
+            <div class="call-button">Call</div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="floor-number">4</td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="call-button-container">
+            <div class="call-button">Call</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="floor-number">3</td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="call-button-container">
+            <div class="call-button">Call</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="floor-number">2</td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="call-button-container">
+            <div class="call-button">Call</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="floor-number">1</td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="call-button-container">
+            <div class="call-button">Call</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="floor-number">0</td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="elevator-container"></td>
+          <td class="call-button-container">
+            <div class="call-button">Call</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <script>
+      // Add jQuery easing function
+      $.easing.easeInOutCubic = function (x, t, b, c, d) {
+        if ((t /= d / 2) < 1) return (c / 2) * t * t * t + b;
+        return (c / 2) * ((t -= 2) * t * t + 2) + b;
+      };
+
+      const FLOOR_HEIGHT = 82; // Height of each table row
+      const GROUND_FLOOR_TOP = 820; // Starting Y position (off-screen)
+
+      const elevatorsFloor = [];
+
+      const callQueue = [];
+      for (let i = 1; i < 6; i++) {
+        elevatorsFloor.push({
+          id: i,
+          top: GROUND_FLOOR_TOP,
+          floor: 0,
+          isMoving: false,
+          toFloor: null,
+        });
+      }
+
+      function getFreeNearestElevator(floor) {
+        const freeElevators = elevatorsFloor.filter((item) => !item.isMoving);
+
+        if (freeElevators.length === 0) {
+          return null;
+        }
+
+        // Calculate minimum distance among all free elevators
+        const minDistance = Math.min(
+          ...freeElevators.map((elevator) => Math.abs(elevator.floor - floor))
+        );
+
+        // Get all elevators that are at the minimum distance
+        const closestElevators = freeElevators.filter(
+          (elevator) => Math.abs(elevator.floor - floor) === minDistance
+        );
+
+        // Randomly select one of the closest elevators
+        const randomIndex = Math.floor(Math.random() * closestElevators.length);
+        return closestElevators[randomIndex];
+      }
+
+      const callElevator = (button, floor, elevator) => {
+        const $elevatorElement = $(".elevator-item.item" + elevator.id);
+        const startTime = Date.now();
+
+        // Add moving class before animation starts
+        $elevatorElement.addClass("moving");
+
+        const targetTop = GROUND_FLOOR_TOP - floor * FLOOR_HEIGHT;
+        const currentTop = elevator.top;
+        const distance = Math.abs(targetTop - currentTop);
+
+        // Calculate duration based on distance
+        // Base speed: 2 floors per second (164px per second)
+        const speed = 164; // pixels per second
+        const duration = (distance / speed) * 1000; // Convert to milliseconds
+
+        $elevatorElement.animate(
+          {
+            top: targetTop + "px",
+          },
+          {
+            duration: duration,
+            easing: "linear", // Using easing for smoother start/stop
+            complete: function () {
+              const endTime = Date.now();
+              const duration = ((endTime - startTime) / 1000).toFixed(1);
+
+              elevatorsFloor.find((item) => item.id === elevator.id).top =
+                targetTop;
+              elevatorsFloor.find((item) => item.id === elevator.id).floor =
+                floor;
+
+              button.removeClass("waiting").text(`Arrived`).addClass("arrived");
+
+              $("#elevator-body tr")
+                .eq(9 - floor)
+                .find(".elevator-container")
+                .eq(elevator.id - 1)
+                .text(`${duration}s`);
+
+              $elevatorElement.removeClass("moving").addClass("arrived");
+
+              //   playReachAudio();
+              setTimeout(() => {
+                afterCome(elevator, button);
+              }, 2000);
+            },
+          }
+        );
+      };
+
+      const playReachAudio = () => {
+        const audio = new Audio("ding.mp3");
+        audio.play();
+      };
+
+      const afterCome = (elevator, button) => {
+        const $elevatorElement = $(".elevator-item.item" + elevator.id);
+        $elevatorElement.removeClass("arrived");
+        button.removeClass("arrived").text("Call");
+        elevatorsFloor.find((item) => item.id === elevator.id).isMoving = false;
+
+        // Wait 2 seconds before processing the next call
+        // setTimeout(processNextCall, 2000);
+      };
+
+      function processNextCall() {
+        if (callQueue.length === 0) {
+          return;
+        }
+        const item = callQueue[0];
+        const elevator = getFreeNearestElevator(item.floor);
+        if (elevator) {
+          callQueue.shift(); // Remove the first item from queue
+
+          $("#elevator-body tr")
+            .eq(9 - elevator.floor)
+            .find(".elevator-container")
+            .eq(elevator.id - 1)
+            .text(``);
+
+          elevatorsFloor.find(
+            (item) => item.id === elevator.id
+          ).isMoving = true;
+
+          elevatorsFloor.find((item) => item.id === elevator.id).toFloor =
+            item.floor;
+          callElevator(item.button, item.floor, elevator);
+        } else {
+          setTimeout(processNextCall, 1000);
+        }
+      }
+
+      $(document).ready(function () {
+        // Add click handlers to all call buttons
+        $(".call-button").click(function () {
+          const $button = $(this);
+          $button.addClass("waiting").text("Waiting");
+
+          const row = $button.closest("tr");
+          const floorIndex = $("#elevator-body tr").length - 1 - row.index();
+
+        //   setTimeout(() => {
+            if (
+              elevatorsFloor.some(
+                (item) => item.isMoving && item.toFloor === floorIndex
+              )
+            ) {
+              return;
+            }
+            callQueue.push({ button: $button, floor: floorIndex });
+            console.log(callQueue, callQueue.length, floorIndex, "floorIndex");
+            processNextCall();
+        //   }, 4);
+        });
+      });
+    </script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding-top: 40px;
+        background-color: #f4f4f4;
+        text-align: center;
+      }
+
+      table {
+        margin: auto;
+        border-collapse: collapse;
+        width: 800px;
+        position: relative;
+      }
+
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        vertical-align: middle;
+        background-color: #fff;
+        height: 60px;
+        /* position: relative; */
+      }
+
+      .floor-number {
+        font-weight: bold;
+        width: 60px;
+      }
+
+      .call-button {
+        width: 60px;
+        height: 30px;
+        background-color: #4caf50;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background-color 0.2s;
+      }
+
+      .call-button.waiting {
+        background-color: #dc3545;
+      }
+
+      .call-button:hover {
+        background-color: #45a049;
+      }
+
+      .call-button.waiting:hover {
+        background-color: #c82333;
+      }
+
+      .call-button.arrived {
+        background-color: #fff;
+        border: 1px solid #28a745;
+        color: #28a745;
+      }
+      /* Elevator container */
+      .elevator-container {
+        position: relative;
+        /* width: 100%;
+        height: 100%; */
+        overflow: hidden;
+      }
+
+      .elevator-icon {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 40px;
+        transition: top 1s ease-in-out;
+      }
+
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+
+    <style>
+      .elevator-moving-container {
+        position: absolute;
+        margin: 0 auto;
+        left: 50%;
+        transform: translateX(-50%);
+        border-collapse: collapse;
+        width: 800px;
+        height: 60px;
+        z-index: 100;
+        margin-left: 140px;
+      }
+      .elevator-container {
+        width: 60px;
+        height: 60px;
+        background-color: white;
+        border-radius: 4px;
+      }
+      .elevator-item {
+        width: 60px;
+        height: 60px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 100;
+        transition: all 0.3s;
+      }
+      .elevator-item img {
+        width: 100%;
+        height: 100%;
+        transition: filter 0.3s;
+      }
+      .elevator-item.moving {
+        border-radius: 4px;
+        box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+      }
+
+      .elevator-item.arrived {
+        border-radius: 4px;
+        box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+      }
+      .elevator-item.moving img {
+        filter: invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg)
+          brightness(97%) contrast(97%);
+      }
+      .elevator-item.arrived img {
+        filter: invert(56%) sepia(71%) saturate(436%) hue-rotate(85deg)
+          brightness(95%) contrast(89%);
+      }
+      .item1 {
+        top: 820px;
+        left: 0;
+      }
+      .item2 {
+        top: 820px;
+        left: 120px;
+      }
+      .item3 {
+        top: 820px;
+        left: 240px;
+      }
+      .item4 {
+        top: 820px;
+        left: 350px;
+      }
+      .item5 {
+        top: 820px;
+        left: 460px;
+      }
+      .call-button-container {
+        /* position: relative; */
+        width: 60px;
+        height: 30px;
+      }
+    </style>
+  </body>
+</html>
