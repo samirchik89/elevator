@@ -240,7 +240,7 @@
 
               $elevatorElement.removeClass("moving").addClass("arrived");
 
-              //   playReachAudio();
+              playReachAudio();
               setTimeout(() => {
                 afterCome(elevator, button);
               }, 2000);
@@ -300,18 +300,18 @@
           const row = $button.closest("tr");
           const floorIndex = $("#elevator-body tr").length - 1 - row.index();
 
-        //   setTimeout(() => {
-            if (
-              elevatorsFloor.some(
-                (item) => item.isMoving && item.toFloor === floorIndex
-              )
-            ) {
-              return;
-            }
-            callQueue.push({ button: $button, floor: floorIndex });
-            console.log(callQueue, callQueue.length, floorIndex, "floorIndex");
-            processNextCall();
-        //   }, 4);
+          //   setTimeout(() => {
+          if (
+            elevatorsFloor.some(
+              (item) => item.isMoving && item.toFloor === floorIndex
+            )
+          ) {
+            return;
+          }
+          callQueue.push({ button: $button, floor: floorIndex });
+          console.log(callQueue, callQueue.length, floorIndex, "floorIndex");
+          processNextCall();
+          //   }, 4);
         });
       });
     </script>
